@@ -1,0 +1,183 @@
+#!/usr/bin/env ruby
+require 'gli'
+require 'yaml'
+begin # XXX: Remove this begin/rescue before distributing your app
+require 'fix'
+rescue LoadError
+  STDERR.puts "In development, you need to use `bundle exec bin/fix` to run your app"
+  STDERR.puts "At install-time, RubyGems will make sure lib, etc. are in the load path"
+  STDERR.puts "Feel free to remove this message from bin/fix now"
+  exit 64
+end
+
+include GLI::App
+
+program_desc 'Generate a message for a fix!'
+
+version Fix::VERSION
+
+# Use argument validation
+arguments :strict
+
+desc 'Describe some switch here'
+switch [:s,:switch]
+
+desc 'Enter sassy value -- 1 being most, 5 least'
+default_value '5'
+arg_name 'The name of the argument'
+flag [:f,:flagname]
+
+desc 'create a message'
+arg_name 'List of adjectives'
+
+@intros = []
+@sents = []
+@para = []
+@used_indeces = {}
+@nbr = Random.rand(100)
+
+@stuff = YAML.load_file('../config.yml')
+
+command :create do |c|
+  c.desc 'Describe a switch to list'
+  c.switch :s
+
+  c.desc 'Customer Age'
+  c.default_value 'default'
+  c.flag :f
+  c.action do |global_options,options,args|
+    print_options global_options,options,args
+    puts "--- create --------------------"
+
+    # think about making this command create_sassy or create_homely
+    # pass in args as variable to describe products
+    # other flags for what?
+    # how do i template?  vintage -> certain lists
+    # return customer flag, first timer, hard to please
+
+    populate_collection("intro.txt") { |line| @intros << line }
+    populate_collection("item_sentence.txt") { |line| @sents << line }
+
+    choose_para_intro
+    choose_para_sentences
+    
+    display_result
+  end
+end
+
+desc 'list spits out all the stuff'
+arg_name 'Customer adjectives'
+command :list do |c|
+  c.desc 'Describe a switch to list'
+  c.switch :s
+
+  c.desc 'Describe a flag to list'
+  c.default_value 'default'
+  c.flag :f
+  c.action do |global_options,options,args|
+    # Your command logic here     
+    # If you have any errors, just raise them
+    # raise "that command made no sense"
+    print_options global_options,options,args
+    puts "list command ran"
+  end
+end
+
+desc 'add creates another entry'
+arg_name 'Describe arguments to add here'
+command :add do |c|
+  c.action do |global_options,options,args|
+    puts "add command ran"
+  end
+end
+
+desc 'done denotes that you can go home'
+arg_name 'Describe arguments to done here'
+command :done do |c|
+  c.action do |global_options,options,args|
+    puts "done command ran"
+  end
+end
+
+pre do |global,command,options,args|
+  # Pre logic here
+  # Return true to proceed; false to abort and not call the
+  # chosen command
+  # Use skips_pre before a command to skip this block
+  # on that command only
+  true
+end
+
+post do |global,command,options,args|
+  # Post logic here
+  # Use skips_post before a command to skip this
+  # block on that command only
+end
+
+on_error do |exception|
+  # Error logic here
+  # return false to skip default error handling
+  true
+  false
+end
+
+def display_result
+  puts "\n\n--- results ---"
+  puts @para.join("\n")
+  puts "\n\n"
+end
+
+def choose_para_sentences
+  @para << make_sent( 'item1', @sents ) if @stuff['customer'].has_key?('item1')
+  @para << make_sent( 'item2', @sents ) if @stuff['customer'].has_key?('item2')
+  @para << make_sent( 'item3', @sents ) if @stuff['customer'].has_key?('item3')
+  @para << make_sent( 'item4', @sents ) if @stuff['customer'].has_key?('item4')
+  @para << make_sent( 'item5', @sents ) if @stuff['customer'].has_key?('item5')
+end
+
+def choose_para_intro
+  @intro = @intros[@nbr%(@intros.length-1)]
+  @para << @intro.gsub('[customer]', @stuff['customer']['name'])
+end
+
+def generate_index collection_length
+  nbr = Random.rand(100)
+  nbr%(collection_length-1)
+end
+
+def make_sent key, sents
+  index = generate_index sents.length
+  while @used_indeces.has_key?(index.to_s) do
+    index = generate_index sents.length 
+  end
+  @used_indeces[index.to_s] = 1
+
+  puts "---> index: #{index.to_s}"
+  @sent = @sents[index]
+  mysent = @sent.gsub('[color]', @stuff['customer'][key]['color'])
+  mysent = mysent.gsub('[item]', @stuff['customer'][key]['name'])
+  mysent
+end
+
+def populate_collection filename
+  begin
+    file = File.new("../#{filename}", "r")
+    while (line = file.gets)
+      yield(line.strip)
+      #@intros << line.strip
+    end
+    file.close
+  rescue => err
+    puts "Exception reading #{filename}: #{err}"
+    raise "Exception reading #{filename}: #{err}"
+  end  
+end
+
+def print_options global_options,options,args
+  puts "1. #{global_options.inspect}"
+  puts "2. #{options.inspect}"
+  puts "3. #{args.inspect}"
+end
+
+
+exit run(ARGV)

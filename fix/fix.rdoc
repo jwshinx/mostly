@@ -1,0 +1,5 @@
+= fix
+
+Generate this with
+    fix rdoc
+After you have described your command line interface

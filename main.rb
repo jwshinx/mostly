@@ -28,15 +28,26 @@ rescue => err
 end
 
 para = []
-nbr = Random.rand(100)
-intro = intros[nbr%(intros.length-1)]
+@used_indeces = {}
+@nbr = Random.rand(100)
+intro = intros[@nbr%(intros.length-1)]
 myintro = intro.gsub('[customer]', stuff['customer']['name'])
 
 para << myintro
+def generate_index collection_length
+  nbr = Random.rand(100)
+  #index = nbr%(collection_length-1)
+  #index
+  nbr%(collection_length-1)
+end
 
 def make_sent key, sents, stuff
-  nbr = Random.rand(100)
-  index = nbr%(sents.length-1)
+  index = generate_index sents.length
+  while @used_indeces.has_key?(index.to_s) do
+    index = generate_index sents.length 
+  end
+  @used_indeces[index.to_s] = 1
+
   puts "---> index: #{index.to_s}"
   sent = sents[index]
   mysent = sent.gsub('[color]', stuff['customer'][key]['color'])
