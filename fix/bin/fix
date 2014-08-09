@@ -3,6 +3,9 @@ require 'gli'
 require 'yaml'
 begin # XXX: Remove this begin/rescue before distributing your app
 require 'fix'
+require 'nokogiri'
+require 'open-uri'
+
 rescue LoadError
   STDERR.puts "In development, you need to use `bundle exec bin/fix` to run your app"
   STDERR.puts "At install-time, RubyGems will make sure lib, etc. are in the load path"
@@ -65,6 +68,45 @@ command :create do |c|
   end
 end
 
+desc 'initial load of all existing messages'
+arg_name 'load adjectives'
+command :load do |c|
+  c.desc 'Describe a switch to load'
+  c.switch :s
+
+  c.desc 'Describe a flag to load'
+  c.default_value 'default'
+  c.flag :f
+  c.action do |global_options,options,args|
+    all_msgs = []
+    doc = Nokogiri::HTML(open('https://www.thredup.com/team'))
+    doc.css('p.bio').each do |p|
+      #puts "#{p.content.to_s}" + "\n\n"
+      msg = []
+      p.content.split('.').each { |sentence| msg << sentence.strip + '.' }
+      all_msgs << msg
+    end
+
+    begin
+      open("messages.txt", "w") do |f|
+        all_msgs.each do |msg|
+          msg.each do |sentence|
+            f << sentence + "\n"
+          end
+        end
+      end
+    rescue => err
+      puts "Exception writing messages.txt: #{err}"
+      raise "Exception writing messages.txt: #{err}"
+    end  
+    
+    print_options global_options,options,args
+    #puts "all msgs: #{all_msgs.inspect}"
+    puts "load command ran"
+  end
+end
+
+
 desc 'list spits out all the stuff'
 arg_name 'Customer adjectives'
 command :list do |c|
@@ -118,7 +160,7 @@ on_error do |exception|
   # Error logic here
   # return false to skip default error handling
   true
-  false
+  #false
 end
 
 def display_result
