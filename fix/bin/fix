@@ -106,41 +106,6 @@ command :load do |c|
   end
 end
 
-
-desc 'list spits out all the stuff'
-arg_name 'Customer adjectives'
-command :list do |c|
-  c.desc 'Describe a switch to list'
-  c.switch :s
-
-  c.desc 'Describe a flag to list'
-  c.default_value 'default'
-  c.flag :f
-  c.action do |global_options,options,args|
-    # Your command logic here     
-    # If you have any errors, just raise them
-    # raise "that command made no sense"
-    print_options global_options,options,args
-    puts "list command ran"
-  end
-end
-
-desc 'add creates another entry'
-arg_name 'Describe arguments to add here'
-command :add do |c|
-  c.action do |global_options,options,args|
-    puts "add command ran"
-  end
-end
-
-desc 'done denotes that you can go home'
-arg_name 'Describe arguments to done here'
-command :done do |c|
-  c.action do |global_options,options,args|
-    puts "done command ran"
-  end
-end
-
 pre do |global,command,options,args|
   # Pre logic here
   # Return true to proceed; false to abort and not call the
