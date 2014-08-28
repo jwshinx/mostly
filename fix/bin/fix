@@ -45,8 +45,8 @@ command :create do |c|
   c.desc 'Denote new customer with -n. Leave out for returning customer.'
   c.switch :n
 
-  c.desc 'Customer Age'
-  c.default_value 'default'
+  c.desc 'Day type.'
+  c.default_value 'great'
   c.flag :f
   c.action do |global_options,options,args|
     print_options global_options,options,args
@@ -58,13 +58,17 @@ command :create do |c|
     # how do i template?  vintage -> certain lists
     # return customer flag, first timer, hard to please
 
-    @intros_new = populate_intro_new("intro.txt") #{ |line| @intros << line }
-    @intros_returning = populate_intro_returning("intro.txt") #{ |line| @intros << line }
+    @intros_new = populate_intros_new("intro.txt") #{ |line| @intros << line }
+    @intros_returning = populate_intros_returning("intro.txt") #{ |line| @intros << line }
+
+    @closings_new = populate_closings_new("closing.txt") #{ |line| @intros << line }
+    @closings_returning = populate_closings_returning("closing.txt") #{ |line| @intros << line }
 
     populate_collection("item_sentence.txt") { |line| @sents << line }
     
     choose_para_intro options[:n]
     choose_para_sentences
+    choose_para_closing options[:n], options[:f]
     
     display_result
   end
@@ -188,6 +192,15 @@ def choose_para_intro isnew
   @para << intro.gsub('[customer]', @stuff['customer']['name'])
 end
 
+def choose_para_closing isnew, value
+  closing = if isnew
+    @closings_new[@nbr%(@closings_new.length) - 1]
+  else
+    @closings_returning[@nbr%(@closings_returning.length) - 1]
+  end
+  @para << closing.gsub('[day-type]', value)
+end
+
 def generate_index collection_length
   nbr = Random.rand(100)
   nbr%(collection_length-1)
@@ -207,7 +220,7 @@ def make_sent key, sents
   mysent
 end
 
-def populate_intro_new filename
+def populate_intros_new filename
   arr = []
   begin
     file = File.new("../#{filename}", "r")
@@ -227,7 +240,7 @@ def populate_intro_new filename
   arr  
 end
 
-def populate_intro_returning filename
+def populate_intros_returning filename
   arr = []
   begin
     file = File.new("../#{filename}", "r")
@@ -246,6 +259,42 @@ def populate_intro_returning filename
   #puts "gaa returning #{arr.inspect}"
   arr  
 end
+
+def populate_closings_new filename
+  arr = []
+  begin
+    file = File.new("../#{filename}", "r")
+    while (line = file.gets)
+      if line.strip.split("::")[0].strip == 'NEW'
+        arr << line.strip.split("::")[1]
+      end      
+    end
+    file.close
+  rescue => err
+    puts "Exception reading #{filename}: #{err}"
+    raise "Exception reading #{filename}: #{err}"
+  end
+  arr  
+end
+
+def populate_closings_returning filename
+  arr = []
+  begin
+    file = File.new("../#{filename}", "r")
+    while (line = file.gets)
+      if line.strip.split("::")[0].strip == 'RETURNING'
+        arr << line.strip.split("::")[1]
+      end
+    end
+    file.close
+  rescue => err
+    puts "Exception reading #{filename}: #{err}"
+    raise "Exception reading #{filename}: #{err}"
+  end
+  arr  
+end
+
+
 
 
 def populate_collection filename
