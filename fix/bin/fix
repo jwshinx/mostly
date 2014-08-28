@@ -35,6 +35,7 @@ arg_name 'List of adjectives'
 
 @intros = []
 @sents = []
+@sents_hash = {}
 @para = []
 @used_indeces = {}
 @nbr = Random.rand(100)
@@ -64,8 +65,25 @@ command :create do |c|
     @closings_new = populate_closings_new("closing.txt") #{ |line| @intros << line }
     @closings_returning = populate_closings_returning("closing.txt") #{ |line| @intros << line }
 
-    populate_collection("item_sentence.txt") { |line| @sents << line }
-    
+    populate_collection("item_sentence.txt") do |line| 
+      @sents << line 
+    end  
+
+    arr = []
+    populate_hash("item_sentence.txt") do |line| 
+      puts "---> line: #{line.inspect}"
+      unless line == ''
+        key, value = line.strip.split("::")[0].strip, line.strip.split("::")[1].strip
+        arr << value
+        if @sents_hash.has_key? key
+          @sents_hash[key] << value
+        else
+          @sents_hash[key] = [value]        
+        end
+      end
+    end
+    #puts "---> SENTS HASH: #{@sents_hash.inspect}"
+
     choose_para_intro options[:n]
     choose_para_sentences
     choose_para_closing options[:n], options[:f]
@@ -295,7 +313,19 @@ def populate_closings_returning filename
 end
 
 
-
+def populate_hash filename
+  begin
+    file = File.new("../#{filename}", "r")
+    while (line = file.gets)
+      yield(line.strip)
+      #@intros << line.strip
+    end
+    file.close
+  rescue => err
+    puts "Exception reading #{filename}: #{err}"
+    raise "Exception reading #{filename}: #{err}"
+  end  
+end
 
 def populate_collection filename
   begin
