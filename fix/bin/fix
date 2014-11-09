@@ -68,9 +68,7 @@ command :create do |c|
     populate_collection("item_sentence.txt") do |line| 
       key = line.strip.split("::")[0].strip
       value = line.strip.split("::")[1].strip
-
       @sents_hash[key] = value
-      #@sents << line 
     end  
 
     choose_para_intro options[:n]
@@ -142,22 +140,33 @@ on_error do |exception|
 end
 
 def display_result
-  puts "\n\n--- results ---"
-  puts @para.join("\n")
   puts "\n\n"
+  puts @para[0]
+  @para.shift
+  puts "\n"
+  ending = @para.pop
+
+  puts @para.join(" ")
+  puts "\n"
+
+  # @para.each do |i|
+  #   puts "---> #{i.inspect}"
+  # end
+  puts ending
+  puts "\n\n"
+
 end
 
 def choose_para_sentences
   @stuff
-  @para << ''
+  #@para << "\n\n"
   @stuff['customer'].keys.each do |key|
     if key =~ /item/
       item_name = @stuff['customer'][key]['name']
       @para << @sents_hash[item_name]
     end
   end
-  @para << ''
-
+  #@para << "\n\n"
 end
 
 def choose_para_intro isnew
