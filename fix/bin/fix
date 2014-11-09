@@ -69,26 +69,8 @@ command :create do |c|
       @sents << line 
     end  
 
-    arr = []
-    # populate_hash("item_sentence.txt") do |line| 
-    #   #puts "---> line: #{line.inspect}"
-    #   unless line == ''
-    #     key, value = line.strip.split("::")[0].strip, line.strip.split("::")[1].strip
-    #     arr << value
-    #     if @sents_hash.has_key? key
-    #       @sents_hash[key] << value
-    #     else
-    #       @sents_hash[key] = [value]        
-    #     end
-    #   end
-    # end
-    # puts "---> SENTS HASH: #{@sents_hash.inspect}"
-
-    puts '1'
     choose_para_intro options[:n]
-    puts '2'
     choose_para_sentences
-    puts '3'
     choose_para_closing options[:n], options[:f]
     
     display_result
@@ -162,15 +144,18 @@ def display_result
 end
 
 def choose_para_sentences
+  @para << ''
   @para << make_sent( 'item1', @sents ) if @stuff['customer'].has_key?('item1')
   @para << make_sent( 'item2', @sents ) if @stuff['customer'].has_key?('item2')
   @para << make_sent( 'item3', @sents ) if @stuff['customer'].has_key?('item3')
   @para << make_sent( 'item4', @sents ) if @stuff['customer'].has_key?('item4')
   @para << make_sent( 'item5', @sents ) if @stuff['customer'].has_key?('item5')
+  @para << ''
+
 end
 
 def choose_para_intro isnew
-  puts "---> isnew: #{isnew.inspect}"
+  #puts "---> isnew: #{isnew.inspect}"
   intro = if isnew
     @intros_new[@nbr%(@intros_new.length) - 1]
   else
@@ -202,7 +187,7 @@ def make_sent key, sents
 
   # puts "---> index: #{index.to_s}"
   @sent = @sents[index]
-  puts "---> sent: #{@sent.inspect}"
+  # puts "---> sent: #{@sent.inspect}"
   
   mysent = @sent.gsub('[color]', @stuff['customer'][key]['color'])
   mysent = mysent.gsub('[item]', @stuff['customer'][key]['name'])
@@ -217,7 +202,6 @@ def populate_intros_new filename
       #yield(line.strip)
       if line.strip.split("::")[0].strip == 'NEW'
         arr << line.strip.split("::")[1]
-        #puts "new....#{@intros.inspect}"
       end      
     end
     file.close
