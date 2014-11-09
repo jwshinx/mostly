@@ -35,6 +35,7 @@ arg_name 'List of adjectives'
 
 @intros = []
 @sents = []
+@sents_hash = {}
 @para = []
 @used_indeces = {}
 @nbr = Random.rand(100)
@@ -42,11 +43,11 @@ arg_name 'List of adjectives'
 @stuff = YAML.load_file('../config.yml')
 
 command :create do |c|
-  c.desc 'Describe a switch to list'
-  c.switch :s
+  c.desc 'Denote new customer with -n. Leave out for returning customer.'
+  c.switch :n
 
-  c.desc 'Customer Age'
-  c.default_value 'default'
+  c.desc 'Day type.'
+  c.default_value 'great'
   c.flag :f
   c.action do |global_options,options,args|
     print_options global_options,options,args
@@ -58,11 +59,34 @@ command :create do |c|
     # how do i template?  vintage -> certain lists
     # return customer flag, first timer, hard to please
 
-    populate_collection("intro.txt") { |line| @intros << line }
-    populate_collection("item_sentence.txt") { |line| @sents << line }
+    @intros_new = populate_intros_new("intro.txt") #{ |line| @intros << line }
+    @intros_returning = populate_intros_returning("intro.txt") #{ |line| @intros << line }
 
-    choose_para_intro
+    @closings_new = populate_closings_new("closing.txt") #{ |line| @intros << line }
+    @closings_returning = populate_closings_returning("closing.txt") #{ |line| @intros << line }
+
+    populate_collection("item_sentence.txt") do |line| 
+      @sents << line 
+    end  
+
+    arr = []
+    populate_hash("item_sentence.txt") do |line| 
+      puts "---> line: #{line.inspect}"
+      unless line == ''
+        key, value = line.strip.split("::")[0].strip, line.strip.split("::")[1].strip
+        arr << value
+        if @sents_hash.has_key? key
+          @sents_hash[key] << value
+        else
+          @sents_hash[key] = [value]        
+        end
+      end
+    end
+    #puts "---> SENTS HASH: #{@sents_hash.inspect}"
+
+    choose_para_intro options[:n]
     choose_para_sentences
+    choose_para_closing options[:n], options[:f]
     
     display_result
   end
@@ -142,9 +166,22 @@ def choose_para_sentences
   @para << make_sent( 'item5', @sents ) if @stuff['customer'].has_key?('item5')
 end
 
-def choose_para_intro
-  @intro = @intros[@nbr%(@intros.length-1)]
-  @para << @intro.gsub('[customer]', @stuff['customer']['name'])
+def choose_para_intro isnew
+  intro = if isnew
+    @intros_new[@nbr%(@intros_new.length) - 1]
+  else
+    @intros_returning[@nbr%(@intros_returning.length) - 1]
+  end
+  @para << intro.gsub('[customer]', @stuff['customer']['name'])
+end
+
+def choose_para_closing isnew, value
+  closing = if isnew
+    @closings_new[@nbr%(@closings_new.length) - 1]
+  else
+    @closings_returning[@nbr%(@closings_returning.length) - 1]
+  end
+  @para << closing.gsub('[day-type]', value)
 end
 
 def generate_index collection_length
@@ -166,6 +203,95 @@ def make_sent key, sents
   mysent
 end
 
+def populate_intros_new filename
+  arr = []
+  begin
+    file = File.new("../#{filename}", "r")
+    while (line = file.gets)
+      #yield(line.strip)
+      if line.strip.split("::")[0].strip == 'NEW'
+        arr << line.strip.split("::")[1]
+        #puts "new....#{@intros.inspect}"
+      end      
+    end
+    file.close
+  rescue => err
+    puts "Exception reading #{filename}: #{err}"
+    raise "Exception reading #{filename}: #{err}"
+  end
+  #puts "gaa new #{arr.inspect}"
+  arr  
+end
+
+def populate_intros_returning filename
+  arr = []
+  begin
+    file = File.new("../#{filename}", "r")
+    while (line = file.gets)
+      #yield(line.strip)
+      if line.strip.split("::")[0].strip == 'RETURNING'
+        arr << line.strip.split("::")[1]
+        #puts "returning....#{@intros.inspect}"        
+      end
+    end
+    file.close
+  rescue => err
+    puts "Exception reading #{filename}: #{err}"
+    raise "Exception reading #{filename}: #{err}"
+  end
+  #puts "gaa returning #{arr.inspect}"
+  arr  
+end
+
+def populate_closings_new filename
+  arr = []
+  begin
+    file = File.new("../#{filename}", "r")
+    while (line = file.gets)
+      if line.strip.split("::")[0].strip == 'NEW'
+        arr << line.strip.split("::")[1]
+      end      
+    end
+    file.close
+  rescue => err
+    puts "Exception reading #{filename}: #{err}"
+    raise "Exception reading #{filename}: #{err}"
+  end
+  arr  
+end
+
+def populate_closings_returning filename
+  arr = []
+  begin
+    file = File.new("../#{filename}", "r")
+    while (line = file.gets)
+      if line.strip.split("::")[0].strip == 'RETURNING'
+        arr << line.strip.split("::")[1]
+      end
+    end
+    file.close
+  rescue => err
+    puts "Exception reading #{filename}: #{err}"
+    raise "Exception reading #{filename}: #{err}"
+  end
+  arr  
+end
+
+
+def populate_hash filename
+  begin
+    file = File.new("../#{filename}", "r")
+    while (line = file.gets)
+      yield(line.strip)
+      #@intros << line.strip
+    end
+    file.close
+  rescue => err
+    puts "Exception reading #{filename}: #{err}"
+    raise "Exception reading #{filename}: #{err}"
+  end  
+end
+
 def populate_collection filename
   begin
     file = File.new("../#{filename}", "r")
@@ -181,9 +307,9 @@ def populate_collection filename
 end
 
 def print_options global_options,options,args
-  puts "1. #{global_options.inspect}"
-  puts "2. #{options.inspect}"
-  puts "3. #{args.inspect}"
+  puts "1. Global: #{global_options.inspect}"
+  puts "2. Options: #{options.inspect}"
+  puts "3. Args: #{args.inspect}"
 end
 
 
