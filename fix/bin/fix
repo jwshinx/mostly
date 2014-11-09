@@ -145,16 +145,10 @@ def display_result
   @para.shift
   puts "\n"
   ending = @para.pop
-
   puts @para.join(" ")
   puts "\n"
-
-  # @para.each do |i|
-  #   puts "---> #{i.inspect}"
-  # end
   puts ending
   puts "\n\n"
-
 end
 
 def choose_para_sentences
@@ -262,7 +256,7 @@ def populate_closings_new filename
     puts "Exception reading #{filename}: #{err}"
     raise "Exception reading #{filename}: #{err}"
   end
-  puts "---> new closings: #{arr.inspect}"
+  #puts "---> new closings: #{arr.inspect}"
   arr  
 end
 
@@ -280,7 +274,7 @@ def populate_closings_returning filename
     puts "Exception reading #{filename}: #{err}"
     raise "Exception reading #{filename}: #{err}"
   end
-  puts "---> returning closings: #{arr.inspect}"
+  #puts "---> returning closings: #{arr.inspect}"
   arr  
 end
 
