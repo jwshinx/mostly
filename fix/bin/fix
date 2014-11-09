@@ -35,7 +35,7 @@ arg_name 'List of adjectives'
 
 @intros = []
 @sents = []
-@sents_hash = {}
+# @sents_hash = {}
 @para = []
 @used_indeces = {}
 @nbr = Random.rand(100)
@@ -70,22 +70,25 @@ command :create do |c|
     end  
 
     arr = []
-    populate_hash("item_sentence.txt") do |line| 
-      puts "---> line: #{line.inspect}"
-      unless line == ''
-        key, value = line.strip.split("::")[0].strip, line.strip.split("::")[1].strip
-        arr << value
-        if @sents_hash.has_key? key
-          @sents_hash[key] << value
-        else
-          @sents_hash[key] = [value]        
-        end
-      end
-    end
-    #puts "---> SENTS HASH: #{@sents_hash.inspect}"
+    # populate_hash("item_sentence.txt") do |line| 
+    #   #puts "---> line: #{line.inspect}"
+    #   unless line == ''
+    #     key, value = line.strip.split("::")[0].strip, line.strip.split("::")[1].strip
+    #     arr << value
+    #     if @sents_hash.has_key? key
+    #       @sents_hash[key] << value
+    #     else
+    #       @sents_hash[key] = [value]        
+    #     end
+    #   end
+    # end
+    # puts "---> SENTS HASH: #{@sents_hash.inspect}"
 
+    puts '1'
     choose_para_intro options[:n]
+    puts '2'
     choose_para_sentences
+    puts '3'
     choose_para_closing options[:n], options[:f]
     
     display_result
@@ -167,6 +170,7 @@ def choose_para_sentences
 end
 
 def choose_para_intro isnew
+  puts "---> isnew: #{isnew.inspect}"
   intro = if isnew
     @intros_new[@nbr%(@intros_new.length) - 1]
   else
@@ -196,8 +200,10 @@ def make_sent key, sents
   end
   @used_indeces[index.to_s] = 1
 
-  puts "---> index: #{index.to_s}"
+  # puts "---> index: #{index.to_s}"
   @sent = @sents[index]
+  puts "---> sent: #{@sent.inspect}"
+  
   mysent = @sent.gsub('[color]', @stuff['customer'][key]['color'])
   mysent = mysent.gsub('[item]', @stuff['customer'][key]['name'])
   mysent
@@ -257,6 +263,7 @@ def populate_closings_new filename
     puts "Exception reading #{filename}: #{err}"
     raise "Exception reading #{filename}: #{err}"
   end
+  puts "---> new closings: #{arr.inspect}"
   arr  
 end
 
@@ -274,6 +281,7 @@ def populate_closings_returning filename
     puts "Exception reading #{filename}: #{err}"
     raise "Exception reading #{filename}: #{err}"
   end
+  puts "---> returning closings: #{arr.inspect}"
   arr  
 end
 
