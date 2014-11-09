@@ -35,7 +35,7 @@ arg_name 'List of adjectives'
 
 @intros = []
 @sents = []
-# @sents_hash = {}
+@sents_hash = {}
 @para = []
 @used_indeces = {}
 @nbr = Random.rand(100)
@@ -66,7 +66,11 @@ command :create do |c|
     @closings_returning = populate_closings_returning("closing.txt") #{ |line| @intros << line }
 
     populate_collection("item_sentence.txt") do |line| 
-      @sents << line 
+      key = line.strip.split("::")[0].strip
+      value = line.strip.split("::")[1].strip
+
+      @sents_hash[key] = value
+      #@sents << line 
     end  
 
     choose_para_intro options[:n]
@@ -144,12 +148,14 @@ def display_result
 end
 
 def choose_para_sentences
+  @stuff
   @para << ''
-  @para << make_sent( 'item1', @sents ) if @stuff['customer'].has_key?('item1')
-  @para << make_sent( 'item2', @sents ) if @stuff['customer'].has_key?('item2')
-  @para << make_sent( 'item3', @sents ) if @stuff['customer'].has_key?('item3')
-  @para << make_sent( 'item4', @sents ) if @stuff['customer'].has_key?('item4')
-  @para << make_sent( 'item5', @sents ) if @stuff['customer'].has_key?('item5')
+  @stuff['customer'].keys.each do |key|
+    if key =~ /item/
+      item_name = @stuff['customer'][key]['name']
+      @para << @sents_hash[item_name]
+    end
+  end
   @para << ''
 
 end
