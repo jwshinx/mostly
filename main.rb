@@ -1,5 +1,6 @@
 require 'yaml'
 
+# ha
 stuff = YAML.load_file('config.yml')
 #stuff.each_pair { |k,v| puts "---> #{k.to_s}:#{v.to_s}" }
 
